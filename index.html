@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KDKMP - Unit Simpan Pinjam</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" />
+    <!-- Font Awesome (opsional) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        /* ===== GLOBAL ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f7fc;
+            padding-top: 60px;
+        }
+        a {
+            text-decoration: none;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            border-right: 1px solid #e9ecef;
+        }
+        .sidebar .nav-link {
+            color: #4a5568;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 2px 10px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        .sidebar .nav-link:hover {
+            background: #e8f0fe;
+            color: #1a73e8;
+        }
+        .sidebar .nav-link.active {
+            background: #1a73e8;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(26,115,232,0.3);
+        }
+        .sidebar .nav-link i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+        .sidebar .nav-link .badge {
+            float: right;
+            margin-top: 2px;
+        }
+
+        /* ===== CONTENT ===== */
+        .content {
+            padding: 24px 30px;
+        }
+        .content .page-header {
+            margin-bottom: 24px;
+        }
+        .content .page-header h2 {
+            font-weight: 700;
+            color: #1a202c;
+        }
+        .content .page-header .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* ===== CARDS ===== */
+        .stat-card {
+            border: none;
+            border-radius: 16px;
+            padding: 20px 24px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.10);
+        }
+        .stat-card .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #fff;
+        }
+        .stat-card .stat-icon.blue { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .stat-card .stat-icon.green { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .stat-card .stat-icon.orange { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .stat-card .stat-icon.red { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .stat-card .stat-label {
+            font-size: 14px;
+            color: #718096;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        .stat-card .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a202c;
+        }
+        .stat-card .stat-change {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .stat-card .stat-change.up { color: #38a169; }
+        .stat-card .stat-change.down { color: #e53e3e; }
+
+        /* ===== TABEL ===== */
+        .table-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .table-card .card-header {
+            background: #fff;
+            border-bottom: 1px solid #edf2f7;
+            padding: 16px 24px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .table-card .card-body {
+            padding: 0;
+        }
+        .table-card .table {
+            margin: 0;
+        }
+        .table-card .table th {
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #edf2f7;
+            padding: 12px 16px;
+        }
+        .table-card .table td {
+            padding: 12px 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid #edf2f7;
+            color: #2d3748;
+        }
+        .table-card .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ===== BADGE ===== */
+        .badge-status {
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        .badge-status.aktif { background: #c6f6d5; color: #22543d; }
+        .badge-status.nonaktif { background: #fed7d7; color: #9b2c2c; }
+        .badge-status.proses { background: #fefcbf; color: #744210; }
+        .badge-status.disetujui { background: #bee3f8; color: #2a4365; }
+        .badge-status.ditolak { background: #fed7d7; color: #9b2c2c; }
+        .badge-status.aktif { background: #c6f6d5; color: #22543d; }
+        .badge-status.lunas { background: #c6f6d5; color: #22543d; }
+        .badge-status.wajib { background: #bee3f8; color: #2a4365; }
+        .badge-status.pokok { background: #c6f6d5; color: #22543d; }
+        .badge-status.sukarela { background: #e9d8fd; color: #553c9a; }
+        .badge-status.belum_bayar { background: #fefcbf; color: #744210; }
+        .badge-status.terbayar { background: #c6f6d5; color: #22543d; }
+        .badge-status.terlambat { background: #fed7d7; color: #9b2c2c; }
+
+        /* ===== BUTTONS ===== */
+        .btn-action {
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .sidebar {
+                min-height: auto;
+                padding: 10px 0;
+            }
+            .sidebar .nav-link {
+                padding: 8px 16px;
+                margin: 0 5px;
+            }
+            .content {
+                padding: 16px;
+            }
+            .stat-card .stat-value {
+                font-size: 22px;
+            }
+        }
+
+        /* ===== LOGIN PAGE ===== */
+        .login-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        .login-card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .login-card .login-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .login-card .login-logo i {
+            font-size: 48px;
+            color: #667eea;
+            background: #f0f4ff;
+            padding: 16px;
+            border-radius: 16px;
+        }
+        .login-card .login-logo h4 {
+            margin-top: 12px;
+            font-weight: 700;
+            color: #1a202c;
+        }
+        .login-card .login-logo p {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        /* Modal */
+        .modal-content {
+            border-radius: 16px;
+            border: none;
+        }
+        .modal-header {
+            border-bottom: 1px solid #edf2f7;
+            padding: 20px 24px;
+        }
+        .modal-footer {
+            border-top: 1px solid #edf2f7;
+            padding: 16px 24px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- NAVBAR -->
+<!-- ============================================================ -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="bi bi-building me-2"></i>KDKMP - Unit Simpan Pinjam
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle fs-5 me-2"></i>
+                        <span>Admin</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Profil</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Pengaturan</a></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- MAIN WRAPPER -->
+<!-- ============================================================ -->
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- ========================================================== -->
+        <!-- SIDEBAR -->
+        <!-- ========================================================== -->
+        <div class="col-md-3 col-lg-2 px-0 sidebar d-none d-md-block">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#page-dashboard">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#page-anggota">
+                        <i class="bi bi-people"></i> Anggota
+                        <span class="badge bg-primary rounded-pill">12</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#page-simpanan">
+                        <i class="bi bi-piggy-bank"></i> Simpanan
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#page-pinjaman">
+                        <i class="bi bi-credit-card"></i> Pinjaman
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#page-angsuran">
+                        <i class="bi bi-calendar-check"></i> Angsuran
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#page-users">
+                        <i class="bi bi-person-badge"></i> Manajemen User
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#page-laporan">
+                        <i class="bi bi-file-earmark-text"></i> Laporan
+                    </a>
+                </li>
+                <li class="nav-item mt-3">
+                    <hr class="mx-3" />
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="#">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- ========================================================== -->
+        <!-- CONTENT -->
+        <!-- ========================================================== -->
+        <div class="col-md-9 col-lg-10 content">
+
+            <!-- =============================== -->
+            <!-- PAGE: DASHBOARD -->
+            <!-- =============================== -->
+            <div id="page-dashboard">
+                <div class="page-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="bi bi-speedometer2 me-2 text-primary"></i>Dashboard</h2>
+                        <p class="text-muted">Ringkasan data Unit Simpan Pinjam KDKMP</p>
+                    </div>
+                    <div>
+                        <span class="text-muted"><i class="bi bi-calendar3 me-1"></i> <?php echo date('d F Y'); ?></span>
+                    </div>
+                </div>
+
+                <!-- Statistik Cards -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card bg-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-label">Total Anggota</div>
+                                    <div class="stat-value">1,284</div>
+                                    <span class="stat-change up"><i class="bi bi-arrow-up"></i> 12%</span>
+                                </div>
+                                <div class="stat-icon blue"><i class="bi bi-people"></i></div>
+                            </div>
+                            <small class="text-muted">Aktif: 1,102 | Nonaktif: 182</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card bg-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-label">Total Simpanan</div>
+                                    <div class="stat-value">Rp 4.8M</div>
+                                    <span class="stat-change up"><i class="bi bi-arrow-up"></i> 8.5%</span>
+                                </div>
+                                <div class="stat-icon green"><i class="bi bi-piggy-bank"></i></div>
+                            </div>
+                            <small class="text-muted">Wajib: Rp 2.1M | Pokok: Rp 1.7M</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card bg-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-label">Pinjaman Aktif</div>
+                                    <div class="stat-value">Rp 3.2M</div>
+                                    <span class="stat-change up"><i class="bi bi-arrow-up"></i> 5.2%</span>
+                                </div>
+                                <div class="stat-icon orange"><i class="bi bi-credit-card"></i></div>
+                            </div>
+                            <small class="text-muted">45 pinjaman berjalan</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <div class="stat-card bg-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-label">Angsuran Terlambat</div>
+                                    <div class="stat-value">23</div>
+                                    <span class="stat-change down"><i class="bi bi-arrow-down"></i> 3.1%</span>
+                                </div>
+                                <div class="stat-icon red"><i class="bi bi-exclamation-triangle"></i></div>
+                            </div>
+                            <small class="text-muted">Perlu penagihan segera</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabel Dashboard: Simpanan & Pinjaman Terbaru -->
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="table-card card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-clock-history me-2 text-primary"></i>Simpanan Terbaru</span>
+                                <a href="#page-simpanan" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Anggota</th>
+                                            <th>Jenis</th>
+                                            <th>Jumlah</th>
+                                            <th>Tanggal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Budi Santoso</td>
+                                            <td><span class="badge badge-status wajib">Wajib</span></td>
+                                            <td>Rp 500.000</td>
+                                            <td>28/06/2026</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Siti Rahayu</td>
+                                            <td><span class="badge badge-status pokok">Pokok</span></td>
+                                            <td>Rp 1.000.000</td>
+                                            <td>27/06/2026</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Andi Pratama</td>
+                                            <td><span class="badge badge-status sukarela">Sukarela</span></td>
+                                            <td>Rp 250.000</td>
+                                            <td>26/06/2026</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Dewi Lestari</td>
+                                            <td><span class="badge badge-status wajib">Wajib</span></td>
+                                            <td>Rp 500.000</td>
+                                            <td>25/06/2026</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="table-card card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-clock-history me-2 text-warning"></i>Pinjaman Terbaru</span>
+                                <a href="#page-pinjaman" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>No Pinjaman</th>
+                                            <th>Anggota</th>
+                                            <th>Jumlah</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>PIN-20260628-001</td>
+                                            <td>Budi Santoso</td>
+                                            <td>Rp 5.000.000</td>
+                                            <td><span class="badge badge-status proses">Proses</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>PIN-20260627-002</td>
+                                            <td>Siti Rahayu</td>
+                                            <td>Rp 3.500.000</td>
+                                            <td><span class="badge badge-status aktif">Aktif</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>PIN-20260626-003</td>
+                                            <td>Andi Pratama</td>
+                                            <td>Rp 2.000.000</td>
+                                            <td><span class="badge badge-status disetujui">Disetujui</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td>PIN-20260625-004</td>
+                                            <td>Dewi Lestari</td>
+                                            <td>Rp 4.000.000</td>
+                                            <td><span class="badge badge-status lunas">Lunas</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =============================== -->
+            <!-- PAGE: ANGGOTA -->
+            <!-- =============================== -->
+            <div id="page-anggota" style="display:none;">
+                <div class="page-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="bi bi-people me-2 text-primary"></i>Data Anggota</h2>
+                        <p class="text-muted">Kelola data anggota Unit Simpan Pinjam</p>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAnggota">
+                        <i class="bi bi-plus-circle me-1"></i> Tambah Anggota
+                    </button>
+                </div>
+
+                <div class="table-card card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>No Anggota</th>
+                                        <th>Nama</th>
+                                        <th>NIK</th>
+                                        <th>No Telepon</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>AGT-20260628-001</strong></td>
+                                        <td>Budi Santoso</td>
+                                        <td>3201010101010001</td>
+                                        <td>0812-3456-7890</td>
+                                        <td><span class="badge badge-status aktif">Aktif</span></td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>AGT-20260627-002</strong></td>
+                                        <td>Siti Rahayu</td>
+                                        <td>3201010101010002</td>
+                                        <td>0812-3456-7891</td>
+                                        <td><span class="badge badge-status aktif">Aktif</span></td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>AGT-20260626-003</strong></td>
+                                        <td>Andi Pratama</td>
+                                        <td>3201010101010003</td>
+                                        <td>0812-3456-7892</td>
+                                        <td><span class="badge badge-status nonaktif">Nonaktif</span></td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>AGT-20260625-004</strong></td>
+                                        <td>Dewi Lestari</td>
+                                        <td>3201010101010004</td>
+                                        <td>0812-3456-7893</td>
+                                        <td><span class="badge badge-status aktif">Aktif</span></td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>AGT-20260624-005</strong></td>
+                                        <td>Eko Saputra</td>
+                                        <td>3201010101010005</td>
+                                        <td>0812-3456-7894</td>
+                                        <td><span class="badge badge-status aktif">Aktif</span></td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Pagination -->
+                        <nav aria-label="Page navigation" class="mt-3">
+                            <ul class="pagination justify-content-end">
+                                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =============================== -->
+            <!-- PAGE: SIMPANAN -->
+            <!-- =============================== -->
+            <div id="page-simpanan" style="display:none;">
+                <div class="page-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="bi bi-piggy-bank me-2 text-success"></i>Data Simpanan</h2>
+                        <p class="text-muted">Kelola data simpanan anggota</p>
+                    </div>
+                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalSimpanan">
+                        <i class="bi bi-plus-circle me-1"></i> Tambah Simpanan
+                    </button>
+                </div>
+
+                <div class="table-card card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Anggota</th>
+                                        <th>Jenis Simpanan</th>
+                                        <th>Jumlah</th>
+                                        <th>Tanggal Simpan</th>
+                                        <th>Petugas</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Budi Santoso</td>
+                                        <td><span class="badge badge-status wajib">Wajib</span></td>
+                                        <td>Rp 500.000</td>
+                                        <td>28/06/2026</td>
+                                        <td>Admin</td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Siti Rahayu</td>
+                                        <td><span class="badge badge-status pokok">Pokok</span></td>
+                                        <td>Rp 1.000.000</td>
+                                        <td>27/06/2026</td>
+                                        <td>Admin</td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Andi Pratama</td>
+                                        <td><span class="badge badge-status sukarela">Sukarela</span></td>
+                                        <td>Rp 250.000</td>
+                                        <td>26/06/2026</td>
+                                        <td>Staff</td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Dewi Lestari</td>
+                                        <td><span class="badge badge-status wajib">Wajib</span></td>
+                                        <td>Rp 500.000</td>
+                                        <td>25/06/2026</td>
+                                        <td>Manager</td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <nav aria-label="Page navigation" class="mt-3">
+                            <ul class="pagination justify-content-end">
+                                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =============================== -->
+            <!-- PAGE: PINJAMAN -->
+            <!-- =============================== -->
+            <div id="page-pinjaman" style="display:none;">
+                <div class="page-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="bi bi-credit-card me-2 text-warning"></i>Data Pinjaman</h2>
+                        <p class="text-muted">Kelola data pinjaman anggota</p>
+                    </div>
+                    <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalPinjaman">
+                        <i class="bi bi-plus-circle me-1"></i> Ajukan Pinjaman
+                    </button>
+                </div>
+
+                <div class="table-card card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>No Pinjaman</th>
+                                        <th>Anggota</th>
+                                        <th>Jumlah</th>
+                                        <th>Bunga</th>
+                                        <th>Tenor</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>PIN-20260628-001</strong></td>
+                                        <td>Budi Santoso</td>
+                                        <td>Rp 5.000.000</td>
+                                        <td>12%</td>
+                                        <td>12 bln</td>
+                                        <td><span class="badge badge-status proses">Proses</span></td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>PIN-20260627-002</strong></td>
+                                        <td>Siti Rahayu</td>
+                                        <td>Rp 3.500.000</td>
+                                        <td>10%</td>
+                                        <td>6 bln</td>
+                                        <td><span class="badge badge-status aktif">Aktif</span></td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>PIN-20260626-003</strong></td>
+                                        <td>Andi Pratama</td>
+                                        <td>Rp 2.000.000</td>
+                                        <td>8%</td>
+                                        <td>4 bln</td>
+                                        <td><span class="badge badge-status disetujui">Disetujui</span></td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>PIN-20260625-004</strong></td>
+                                        <td>Dewi Lestari</td>
+                                        <td>Rp 4.000.000</td>
+                                        <td>12%</td>
+                                        <td>10 bln</td>
+                                        <td><span class="badge badge-status lunas">Lunas</span></td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>PIN-20260624-005</strong></td>
+                                        <td>Eko Saputra</td>
+                                        <td>Rp 6.000.000</td>
+                                        <td>15%</td>
+                                        <td>12 bln</td>
+                                        <td><span class="badge badge-status aktif">Aktif</span></td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <nav aria-label="Page navigation" class="mt-3">
+                            <ul class="pagination justify-content-end">
+                                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =============================== -->
+            <!-- PAGE: ANGSURAN -->
+            <!-- =============================== -->
+            <div id="page-angsuran" style="display:none;">
+                <div class="page-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="bi bi-calendar-check me-2 text-info"></i>Data Angsuran</h2>
+                        <p class="text-muted">Monitoring pembayaran angsuran pinjaman</p>
+                    </div>
+                    <button class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#modalAngsuran">
+                        <i class="bi bi-plus-circle me-1"></i> Input Pembayaran
+                    </button>
+                </div>
+
+                <div class="table-card card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>No Pinjaman</th>
+                                        <th>Angsuran Ke</th>
+                                        <th>Jumlah</th>
+                                        <th>Jatuh Tempo</th>
+                                        <th>Status</th>
+                                        <th>Denda</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>PIN-20260627-002</td>
+                                        <td>1</td>
+                                        <td>Rp 641.667</td>
+                                        <td>27/07/2026</td>
+                                        <td><span class="badge badge-status terbayar">Terbayar</span></td>
+                                        <td>Rp 0</td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>PIN-20260627-002</td>
+                                        <td>2</td>
+                                        <td>Rp 641.667</td>
+                                        <td>27/08/2026</td>
+                                        <td><span class="badge badge-status belum_bayar">Belum Bayar</span></td>
+                                        <td>Rp 0</td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>PIN-20260624-005</td>
+                                        <td>1</td>
+                                        <td>Rp 575.000</td>
+                                        <td>24/07/2026</td>
+                                        <td><span class="badge badge-status terlambat">Terlambat</span></td>
+                                        <td>Rp 28.750</td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>PIN-20260624-005</td>
+                                        <td>2</td>
+                                        <td>Rp 575.000</td>
+                                        <td>24/08/2026</td>
+                                        <td><span class="badge badge-status belum_bayar">Belum Bayar</span></td>
+                                        <td>Rp 0</td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>PIN-20260625-004</td>
+                                        <td>1</td>
+                                        <td>Rp 440.000</td>
+                                        <td>25/07/2026</td>
+                                        <td><span class="badge badge-status terbayar">Terbayar</span></td>
+                                        <td>Rp 0</td>
+                                        <td>
+                                            <button class="btn btn-info btn-action btn-sm"><i class="bi bi-eye"></i></button>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <nav aria-label="Page navigation" class="mt-3">
+                            <ul class="pagination justify-content-end">
+                                <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =============================== -->
+            <!-- PAGE: USERS (Admin Only) -->
+            <!-- =============================== -->
+            <div id="page-users" style="display:none;">
+                <div class="page-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="bi bi-person-badge me-2 text-primary"></i>Manajemen User</h2>
+                        <p class="text-muted">Kelola akun pengguna sistem</p>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUser">
+                        <i class="bi bi-plus-circle me-1"></i> Tambah User
+                    </button>
+                </div>
+
+                <div class="table-card card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nama</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Administrator</td>
+                                        <td>admin@kdkmp.com</td>
+                                        <td><span class="badge bg-danger">Admin</span></td>
+                                        <td><span class="badge badge-status aktif">Aktif</span></td>
+                                        <td>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Manager</td>
+                                        <td>manager@kdkmp.com</td>
+                                        <td><span class="badge bg-primary">Manager</span></td>
+                                        <td><span class="badge badge-status aktif">Aktif</span></td>
+                                        <td>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Staff</td>
+                                        <td>staff@kdkmp.com</td>
+                                        <td><span class="badge bg-info">Staff</span></td>
+                                        <td><span class="badge badge-status aktif">Aktif</span></td>
+                                        <td>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Budi Santoso</td>
+                                        <td>budi@kdkmp.com</td>
+                                        <td><span class="badge bg-secondary">Member</span></td>
+                                        <td><span class="badge badge-status aktif">Aktif</span></td>
+                                        <td>
+                                            <button class="btn btn-warning btn-action btn-sm"><i class="bi bi-pencil"></i></button>
+                                            <button class="btn btn-danger btn-action btn-sm"><i class="bi bi-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- =============================== -->
+            <!-- PAGE: LAPORAN -->
+            <!-- =============================== -->
+            <div id="page-laporan" style="display:none;">
+                <div class="page-header">
+                    <h2><i class="bi bi-file-earmark-text me-2 text-primary"></i>Laporan</h2>
+                    <p class="text-muted">Generate dan cetak laporan keuangan</p>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body text-center py-4">
+                                <i class="bi bi-file-pdf fs-1 text-danger"></i>
+                                <h5 class="mt-2">Laporan Simpanan</h5>
+                                <p class="text-muted small">Rekapitulasi simpanan per periode</p>
+                                <button class="btn btn-outline-danger btn-sm">Generate PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body text-center py-4">
+                                <i class="bi bi-file-pdf fs-1 text-danger"></i>
+                                <h5 class="mt-2">Laporan Pinjaman</h5>
+                                <p class="text-muted small">Rekapitulasi pinjaman aktif & lunas</p>
+                                <button class="btn btn-outline-danger btn-sm">Generate PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body text-center py-4">
+                                <i class="bi bi-file-pdf fs-1 text-danger"></i>
+                                <h5 class="mt-2">Laporan Angsuran</h5>
+                                <p class="text-muted small">Monitoring angsuran per periode</p>
+                                <button class="btn btn-outline-danger btn-sm">Generate PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body text-center py-4">
+                                <i class="bi bi-file-excel fs-1 text-success"></i>
+                                <h5 class="mt-2">Ekspor Excel</h5>
+                                <p class="text-muted small">Ekspor data ke Excel</p>
+                                <button class="btn btn-outline-success btn-sm">Download</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body text-center py-4">
+                                <i class="bi bi-printer fs-1 text-secondary"></i>
+                                <h5 class="mt-2">Cetak Laporan</h5>
+                                <p class="text-muted small">Cetak laporan langsung</p>
+                                <button class="btn btn-outline-secondary btn-sm">Cetak</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card shadow-sm">
+                            <div class="card-body text-center py-4">
+                                <i class="bi bi-graph-up fs-1 text-primary"></i>
+                                <h5 class="mt-2">Statistik</h5>
+                                <p class="text-muted small">Grafik & analisis data</p>
+                                <button class="btn btn-outline-primary btn-sm">Lihat</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- end content -->
+    </div> <!-- end row -->
+</div> <!-- end container-fluid -->
+
+
+<!-- ============================================================ -->
+<!-- MODALS -->
+<!-- ============================================================ -->
+
+<!-- Modal: Tambah Anggota -->
+<div class="modal fade" id="modalAnggota" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus me-2 text-primary"></i>Tambah Anggota Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Nama lengkap" value="Budi Santoso">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">NIK <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="16 digit NIK" value="3201010101010001">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tempat Lahir <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Tempat lahir" value="Jakarta">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tanggal Lahir <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" value="1995-05-15">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Jenis Kelamin <span class="text-danger">*</span></label>
+                            <select class="form-select">
+                                <option>Laki-laki</option>
+                                <option>Perempuan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">No Telepon <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="No telepon" value="0812-3456-7890">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Pekerjaan <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" placeholder="Pekerjaan" value="Wiraswasta">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Alamat <span class="text-danger">*</span></label>
+                            <textarea class="form-control" rows="2" placeholder="Alamat lengkap">Jl. Merdeka No. 123, Jakarta</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Penghasilan Bulanan</label>
+                            <input type="number" class="form-control" placeholder="Rp" value="5000000">
+                        </div>
+                        <div class="col-md-12">
+                            <hr />
+                            <h6 class="text-muted">Data Login</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" placeholder="email@example.com" value="budi@kdkmp.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" placeholder="Min 8 karakter" value="password123">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary">Simpan Anggota</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Tambah Simpanan -->
+<div class="modal fade" id="modalSimpanan" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-piggy-bank me-2 text-success"></i>Tambah Simpanan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Anggota <span class="text-danger">*</span></label>
+                        <select class="form-select">
+                            <option>Budi Santoso</option>
+                            <option>Siti Rahayu</option>
+                            <option>Andi Pratama</option>
+                            <option>Dewi Lestari</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Jenis Simpanan <span class="text-danger">*</span></label>
+                        <select class="form-select">
+                            <option>Wajib</option>
+                            <option>Pokok</option>
+                            <option>Sukarela</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Jumlah (Rp) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" placeholder="0" value="500000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal Simpan <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" value="2026-06-28">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Keterangan</label>
+                        <textarea class="form-control" rows="2" placeholder="Keterangan tambahan"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Ajukan Pinjaman -->
+<div class="modal fade" id="modalPinjaman" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-credit-card me-2 text-warning"></i>Ajukan Pinjaman</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Anggota <span class="text-danger">*</span></label>
+                        <select class="form-select">
+                            <option>Budi Santoso</option>
+                            <option>Siti Rahayu</option>
+                            <option>Andi Pratama</option>
+                            <option>Dewi Lestari</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Jumlah Pinjaman (Rp) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" placeholder="0" value="5000000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Bunga (%) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" placeholder="0" value="12">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tenor (Bulan) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" placeholder="0" value="12">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal Pengajuan <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" value="2026-06-28">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Keterangan</label>
+                        <textarea class="form-control" rows="2" placeholder="Keterangan tambahan"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-warning">Ajukan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Input Angsuran -->
+<div class="modal fade" id="modalAngsuran" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-cash-stack me-2 text-info"></i>Input Pembayaran Angsuran</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Pilih Pinjaman <span class="text-danger">*</span></label>
+                        <select class="form-select">
+                            <option>PIN-20260627-002 - Siti Rahayu</option>
+                            <option>PIN-20260624-005 - Eko Saputra</option>
+                            <option>PIN-20260625-004 - Dewi Lestari</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Angsuran Ke <span class="text-danger">*</span></label>
+                        <select class="form-select">
+                            <option>1 - Rp 641.667 (Jatuh tempo: 27/07/2026)</option>
+                            <option>2 - Rp 641.667 (Jatuh tempo: 27/08/2026)</option>
+                            <option>3 - Rp 641.667 (Jatuh tempo: 27/09/2026)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Jumlah Bayar (Rp) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" placeholder="0" value="641667">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal Bayar <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" value="2026-06-28">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Keterangan</label>
+                        <textarea class="form-control" rows="2" placeholder="Keterangan"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-info">Simpan Pembayaran</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Tambah User -->
+<div class="modal fade" id="modalUser" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus me-2 text-primary"></i>Tambah User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" placeholder="Nama lengkap">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" placeholder="email@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" placeholder="Min 8 karakter">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role <span class="text-danger">*</span></label>
+                        <select class="form-select">
+                            <option>Admin</option>
+                            <option>Manager</option>
+                            <option>Staff</option>
+                            <option>Member</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary">Tambah User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- SCRIPTS -->
+<!-- ============================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js">
+</script>
+<script>
+    // ==========================================================
+    // SIDEBAR NAVIGATION - Switch Pages
+    // ==========================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.sidebar .nav-link');
+        const pages = {
+            '#page-dashboard': 'dashboard',
+            '#page-anggota': 'anggota',
+            '#page-simpanan': 'simpanan',
+            '#page-pinjaman': 'pinjaman',
+            '#page-angsuran': 'angsuran',
+            '#page-users': 'users',
+            '#page-laporan': 'laporan'
+        };
+
+        // Hide all pages except dashboard initially
+        for (const [id, _] of Object.entries(pages)) {
+            const el = document.querySelector(id);
+            if (el) {
+                el.style.display = (id === '#page-dashboard') ? 'block' : 'none';
+            }
+        }
+
+        navLinks.forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+
+                // Hanya jika target adalah page (bukan logout)
+                if (targetId && pages[targetId]) {
+                    // Hide all pages
+                    for (const [id, _] of Object.entries(pages)) {
+                        const el = document.querySelector(id);
+                        if (el) el.style.display = 'none';
+                    }
+                    // Show target page
+                    const targetEl = document.querySelector(targetId);
+                    if (targetEl) targetEl.style.display = 'block';
+
+                    // Update active class
+                    navLinks.forEach(function(l) { l.classList.remove('active'); });
+                    this.classList.add('active');
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
